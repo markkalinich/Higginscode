@@ -28,6 +28,7 @@
 clc;close all;clear all;
 
 %set integration boundaries for weight of catalyst
+%set integration boundaries for weight of catalysttesttesttest
 T0=0; % minutes
 TF=10000; %minutes, ~2 days
 Iteration = 10; %number of conditions we'll be scanning
