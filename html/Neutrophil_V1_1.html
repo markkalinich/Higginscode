@@ -1,0 +1,291 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>Neutrophil_V1_1</title><meta name="generator" content="MATLAB 8.1"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2014-03-02"><meta name="DC.source" content="Neutrophil_V1_1.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, tt, code { font-size:12px; }
+pre { margin:0px 0px 20px; }
+pre.error { color:red; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><pre class="codeinput"><span class="comment">%Initial 1 Compartment Model of Neutrophil Maturation and Death.  The model</span>
+<span class="comment">%starts by adding a set number of cells to a blood compartment, allows some</span>
+<span class="comment">%young neutrophils to mature to old, and then removes a set number of cells</span>
+<span class="comment">%from the population (death).  This code was written by Mark Kalinich on 20140225.</span>
+
+<span class="comment">%Differential Equation Model:</span>
+
+<span class="comment">%d(New)/dt = R_production,new - R_death,old - R_maturation</span>
+<span class="comment">%d(Old)/dt = R_production,old - R_death,old + R_maturation</span>
+
+<span class="comment">%for Steady state: 0=R_production,old - R_death,old + R_maturation</span>
+<span class="comment">%0 = (Cell Production rate)*(Old Fraction)-(Total Death)*(Old/(Old+New)</span>
+<span class="comment">%for only old cells:</span>
+<span class="comment">%0 = Cell Production Rate - Total Death Rate</span>
+
+<span class="comment">%For Only Young Cells:</span>
+
+<span class="comment">%Model Assumptions:</span>
+<span class="comment">%1) Constant rate of total cell production from bone</span>
+<span class="comment">%2) constant ratio of old to new neutrophils in the bone</span>
+<span class="comment">%3) random selection of neutrophils from bone</span>
+<span class="comment">%4) Constant fraction of young neutrophils mature into old neutrophils</span>
+<span class="comment">%5) Constant rate of total cell death (Death_old = Constant*(# dead cells)</span>
+<span class="comment">%6) Cell death is not dependent on cell age</span>
+<span class="comment">%7) R_production is a binomial random variable that uses the specified</span>
+<span class="comment">%fraction of old vs. new cells. (R_production_total= constant = R_new+R+old)</span>
+<span class="comment">%8) Person weighs 70 kg.</span>
+
+
+clc; clear;
+<span class="comment">%Step 1: Write up our source.  We're creating an infinite sink that has a</span>
+<span class="comment">%set ratio of young and old neutrophils.</span>
+
+<span class="comment">%First, let's set our intial conditions. All values are per day.</span>
+<span class="keyword">for</span> j = 1:5
+time                  = 1:3000; <span class="comment">%number of time steps, in minutes</span>
+Weight                = 70; <span class="comment">%person's weight, in kg</span>
+Neutrophil_blood      = 65*10^7*Weight; <span class="comment">%neutrophils initially in blood pool for a 70 kg person, "Neutrophil kinetics in health and disease" Summers 2010</span>
+Band_Fraction         = 0.015; <span class="comment">% For an uninfected person, bands range from 0-3% in blood http://www.nlm.nih.gov/medlineplus/ency/article/003657.htm</span>
+Young_initial         = Neutrophil_blood*Band_Fraction; <span class="comment">% initial number of bands in the pool</span>
+Old_initial           = Neutrophil_blood*(1-Band_Fraction);<span class="comment">% initial number of mature cells in pool</span>
+Cells_Entering_System = 1.7*10^9*Weight;  <span class="comment">%this is the number of cells entering from bone marrow per day "Neutrophil kinetics in health and disease" Summers 2010</span>
+Young_fractionv        = linspace(0,1,5); <span class="comment">%fraction in bone that is young</span>
+Young_fraction        = Young_fractionv(j); <span class="comment">% select Bone neutrophil fraction I'm exploring</span>
+Mature_probability    = 0.2; <span class="comment">%fraction of band cells in blood that will mature after 1 day</span>
+Death_Leaving_System  = 1.7*10^9*Weight; <span class="comment">%assume steady state</span>
+Band_Mature           = .1; <span class="comment">%fraction of bands that will mature in 1 day in the blood</span>
+Mean_residence_time   = Neutrophil_blood/Cells_Entering_System;
+
+<span class="comment">%Add in conversions to get proper rates.</span>
+Time_Convert = 1440; <span class="comment">%minutes/day</span>
+Cell_Convert = 1*10^6; <span class="comment">%convert cells to millions of cells</span>
+Cell_Enter   = round(Cells_Entering_System/(Time_Convert*Cell_Convert));
+Mature_Prob  = Mature_probability/Time_Convert; <span class="comment">%fraction of band cells that  matures into an old cell in 1 minute.</span>
+Death        = round(Death_Leaving_System/(Time_Convert*Cell_Convert));<span class="comment">% number of cells to die each cycle; assume steady state</span>
+
+<span class="comment">%Initialize some Vectors</span>
+Neutrophil_Count      = zeros(length(time)+1,2); <span class="comment">%initialize solution vector</span>
+Neutrophil_Count(1,1) = Young_initial/Cell_Convert; <span class="comment">%young is left</span>
+Neutrophil_Count(1,2) = Old_initial/Cell_Convert; <span class="comment">%old is right</span>
+
+<span class="keyword">for</span> i = 1:length(time)
+
+<span class="comment">%Step 1: randomly select cells from the bone marrow to add to the blood</span>
+<span class="comment">%population.</span>
+Random = rand(Cell_Enter,1) ; <span class="comment">%random is a vector containing "Enter" number of</span>
+<span class="comment">%values that will represent each cell's random assignment to either "old"</span>
+<span class="comment">%or "young"</span>
+Young_enter = length(find(Random&lt;Young_fraction));
+Old_enter = length(find(Random&gt;Young_fraction)); <span class="comment">%initalize young and old counters</span>
+
+<span class="comment">%Step 2: add these to the blood pool.</span>
+
+dB_Young = Young_enter + Neutrophil_Count(i,1); <span class="comment">%total young in blood pool at t</span>
+dB_Old   = Old_enter   + Neutrophil_Count(i,2); <span class="comment">%total old in blood pool at t</span>
+
+<span class="comment">% Step 3: Allow young cells to mature into old cells.</span>
+
+dOld   = Mature_Prob*dB_Young;
+dB_Young = dB_Young - dOld;
+dB_Old   = dB_Old   + dOld;
+
+<span class="comment">%Step 4: Kill some cells.</span>
+<span class="comment">%Write out how many will die.</span>
+<span class="comment">%Assume that new and old have an equal probability of dying</span>
+
+Dead_Young              = Death*(dB_Young)/(dB_Young+dB_Old);
+Dead_Old                = Death*(dB_Old)/(dB_Young+dB_Old);
+dB_Young                = round(dB_Young - Dead_Young);
+dB_Old                  = round(dB_Old   - Dead_Old);
+Neutrophil_Count(i+1,1) = dB_Young;
+Neutrophil_Count(i+1,2) = dB_Old;
+<span class="keyword">end</span>
+
+fig = figure;
+plot(time,Neutrophil_Count(1:length(time),2),<span class="string">'r'</span>);
+hold <span class="string">on</span>
+plot(time,Neutrophil_Count(1:length(time),1),<span class="string">'g'</span>);
+xlabel (<span class="string">'time (minutes)'</span>)
+ylabel (<span class="string">'Neutrophils'</span>)
+title (<span class="string">'Neutrophils vs. Time, Constant Total Neutrophil Death Rate'</span>)
+legend (<span class="string">'Mature Neutrophils'</span>,<span class="string">'Band Neutrophils'</span>)
+
+saveas(fig,strcat(<span class="string">'Neutrophil_Kinetics_Bone_Neutrophil_Fraction=_'</span>,num2str(Young_fractionv(j))),<span class="string">'jpeg'</span>)
+
+
+
+<span class="keyword">end</span>
+</pre><img vspace="5" hspace="5" src="Neutrophil_V1_1_01.png" alt=""> <img vspace="5" hspace="5" src="Neutrophil_V1_1_02.png" alt=""> <img vspace="5" hspace="5" src="Neutrophil_V1_1_03.png" alt=""> <img vspace="5" hspace="5" src="Neutrophil_V1_1_04.png" alt=""> <img vspace="5" hspace="5" src="Neutrophil_V1_1_05.png" alt=""> <p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2013a</a><br></p></div><!--
+##### SOURCE BEGIN #####
+%Initial 1 Compartment Model of Neutrophil Maturation and Death.  The model 
+%starts by adding a set number of cells to a blood compartment, allows some
+%young neutrophils to mature to old, and then removes a set number of cells 
+%from the population (death).  This code was written by Mark Kalinich on 20140225. 
+
+%Differential Equation Model: 
+
+%d(New)/dt = R_production,new - R_death,old - R_maturation
+%d(Old)/dt = R_production,old - R_death,old + R_maturation
+
+%for Steady state: 0=R_production,old - R_death,old + R_maturation
+%0 = (Cell Production rate)*(Old Fraction)-(Total Death)*(Old/(Old+New)
+%for only old cells:
+%0 = Cell Production Rate - Total Death Rate
+
+%For Only Young Cells: 
+
+%Model Assumptions: 
+%1) Constant rate of total cell production from bone
+%2) constant ratio of old to new neutrophils in the bone
+%3) random selection of neutrophils from bone
+%4) Constant fraction of young neutrophils mature into old neutrophils
+%5) Constant rate of total cell death (Death_old = Constant*(# dead cells)
+%6) Cell death is not dependent on cell age
+%7) R_production is a binomial random variable that uses the specified
+%fraction of old vs. new cells. (R_production_total= constant = R_new+R+old) 
+%8) Person weighs 70 kg. 
+
+
+clc; clear;
+%Step 1: Write up our source.  We're creating an infinite sink that has a
+%set ratio of young and old neutrophils. 
+
+%First, let's set our intial conditions. All values are per day.
+for j = 1:5
+time                  = 1:3000; %number of time steps, in minutes
+Weight                = 70; %person's weight, in kg
+Neutrophil_blood      = 65*10^7*Weight; %neutrophils initially in blood pool for a 70 kg person, "Neutrophil kinetics in health and disease" Summers 2010 
+Band_Fraction         = 0.015; % For an uninfected person, bands range from 0-3% in blood http://www.nlm.nih.gov/medlineplus/ency/article/003657.htm
+Young_initial         = Neutrophil_blood*Band_Fraction; % initial number of bands in the pool 
+Old_initial           = Neutrophil_blood*(1-Band_Fraction);% initial number of mature cells in pool
+Cells_Entering_System = 1.7*10^9*Weight;  %this is the number of cells entering from bone marrow per day "Neutrophil kinetics in health and disease" Summers 2010 
+Young_fractionv        = linspace(0,1,5); %fraction in bone that is young
+Young_fraction        = Young_fractionv(j); % select Bone neutrophil fraction I'm exploring
+Mature_probability    = 0.2; %fraction of band cells in blood that will mature after 1 day
+Death_Leaving_System  = 1.7*10^9*Weight; %assume steady state
+Band_Mature           = .1; %fraction of bands that will mature in 1 day in the blood
+Mean_residence_time   = Neutrophil_blood/Cells_Entering_System;
+                 
+%Add in conversions to get proper rates.
+Time_Convert = 1440; %minutes/day
+Cell_Convert = 1*10^6; %convert cells to millions of cells
+Cell_Enter   = round(Cells_Entering_System/(Time_Convert*Cell_Convert)); 
+Mature_Prob  = Mature_probability/Time_Convert; %fraction of band cells that  matures into an old cell in 1 minute.
+Death        = round(Death_Leaving_System/(Time_Convert*Cell_Convert));% number of cells to die each cycle; assume steady state
+
+%Initialize some Vectors
+Neutrophil_Count      = zeros(length(time)+1,2); %initialize solution vector
+Neutrophil_Count(1,1) = Young_initial/Cell_Convert; %young is left
+Neutrophil_Count(1,2) = Old_initial/Cell_Convert; %old is right
+
+for i = 1:length(time)
+
+%Step 1: randomly select cells from the bone marrow to add to the blood
+%population.  
+Random = rand(Cell_Enter,1) ; %random is a vector containing "Enter" number of 
+%values that will represent each cell's random assignment to either "old"
+%or "young"
+Young_enter = length(find(Random<Young_fraction));
+Old_enter = length(find(Random>Young_fraction)); %initalize young and old counters
+
+%Step 2: add these to the blood pool. 
+
+dB_Young = Young_enter + Neutrophil_Count(i,1); %total young in blood pool at t
+dB_Old   = Old_enter   + Neutrophil_Count(i,2); %total old in blood pool at t
+
+% Step 3: Allow young cells to mature into old cells. 
+
+dOld   = Mature_Prob*dB_Young;
+dB_Young = dB_Young - dOld;
+dB_Old   = dB_Old   + dOld; 
+
+%Step 4: Kill some cells. 
+%Write out how many will die. 
+%Assume that new and old have an equal probability of dying
+
+Dead_Young              = Death*(dB_Young)/(dB_Young+dB_Old);
+Dead_Old                = Death*(dB_Old)/(dB_Young+dB_Old);
+dB_Young                = round(dB_Young - Dead_Young);
+dB_Old                  = round(dB_Old   - Dead_Old); 
+Neutrophil_Count(i+1,1) = dB_Young;
+Neutrophil_Count(i+1,2) = dB_Old;
+end 
+
+fig = figure;
+plot(time,Neutrophil_Count(1:length(time),2),'r');
+hold on
+plot(time,Neutrophil_Count(1:length(time),1),'g');
+xlabel ('time (minutes)')
+ylabel ('Neutrophils')
+title ('Neutrophils vs. Time, Constant Total Neutrophil Death Rate')
+legend ('Mature Neutrophils','Band Neutrophils')
+
+saveas(fig,strcat('Neutrophil_Kinetics_Bone_Neutrophil_Fraction=_',num2str(Young_fractionv(j))),'jpeg')
+
+
+
+end
+
+
+
+
+##### SOURCE END #####
+--></body></html>
