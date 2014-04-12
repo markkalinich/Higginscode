@@ -1,0 +1,66 @@
+%This code was written to solve a simplifed homogenous discrete-time
+%Markov-chain model of neutrophil maturation.  It was written by Mark
+%Kalinich on 20140411.  
+
+%Current assumptions
+%All Cells in a compartment mature from 1 compartment to the next every
+%time step
+%BM cell age is equally distributed across ages. 
+
+clc;close all;clear all;
+%Step 1: Define my time intervals
+t0   = 1; %initial time step
+tf   = 100; %right now, we're doing things in minutes
+Comp = 5; %number of age compartments
+Weight                = 70; %person's weight, in kg 
+Neutrophil_blood      = 65*10^7*Weight; %neutrophils initially in blood pool for a 70 kg person, "Neutrophil kinetics in health and disease" Summers 2010 
+Band_Fraction         = .015; % For an uninfected person, bands range from 0-3% in blood http://www.nlm.nih.gov/medlineplus/ency/article/003657.htm
+Young_initial         = Neutrophil_blood*Band_Fraction; % initial number of bands in the pool 
+Old_initial           = Neutrophil_blood*(1-Band_Fraction);% initial number of mature cells in pool
+Cells_Entering_System = 1.7*10^9*Weight;  %this is the number of cells entering from bone marrow per day "Neutrophil kinetics in health and disease" Summers 2010
+
+
+%Convert to more easily-usable numbers
+
+Con_Cell = 10^6; %conversion factor for cells (million)
+Con_Time = 60*24; %model is in minutes
+N_blood = Neutrophil_blood/Con_Cell; % number of cells initially in blood, in millions
+Cell_Enter_Total = Cells_Entering_System/(Con_Cell*Con_Time); %now we have total number of cells (millions) entering in per day
+
+%start up vectors/matrices
+n0     = zeros(Comp,1); %initialize the n0 vector (intitial value of all ages)assume neutrophils are in first compartment to start
+n0(1)  = N_blood; %initially assume that we start with all cells in youngest compartment
+BM     = ones(1,tf); %initialize BM injection vector
+BM     = BM*(Cell_Enter_Total/Comp); %assumes that the rate of cell ejection from the BM is equivalent accross ages  
+MatureP = 0.05; %10% prob of maturing during next time
+Mature = MatureP*ones(Comp-1,1); %10% chance of maturing to next stage in time stem
+Stay   = (1-MatureP)*ones(Comp,1); %probability of not maturing (assuming we can either mature or stay the same age
+A      = diag(Stay)+diag(Mature,-1);%transient matrix!
+
+%Set up transient matrix
+S = zeros(length(n0),tf);
+Total = zeros(tf,1);
+
+for i = t0:tf
+    S(:,i) = (A^i)*n0;
+    Total(i) = sum(S(:,i));   
+end    
+
+plot(S(1,:),'b')
+hold on
+plot(S(2,:),'g')
+hold on
+plot(S(3,:),'r')
+hold on
+plot(S(4,:),'c')
+hold on
+plot(S(5,:),'m')
+hold on
+plot(Total,'k')
+legend('1','2','3','4','5','Total')
+
+
+
+
+
+ 

@@ -27,7 +27,6 @@
 
 clc;close all;clear all;
 
-%set integration boundaries for weight of catalyst
 %set integration boundaries for weight of catalysttesttesttest
 T0=0; % minutes
 TF=10000; %minutes, ~2 days
@@ -79,7 +78,7 @@ options = odeset('RelTol', 1e-5);
 
 
 
-%Store Information:
+%Store Inform
 Finish = length(T);
 
 
@@ -90,7 +89,7 @@ Convergecheck      = zeros((Finish-1),1);
 
 end
 
-Young_Store(i) = N(Finish,1);%final number of young neutrophils
+Young_Store(i) = N(Finish,1);%final number of young neutropchange2hils
 Old_Store(i)   = N(Finish,2); %final number of old Neutrophils
 Total_Store(i) = Young_Store(i)+Old_Store(i);
 
